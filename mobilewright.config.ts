@@ -12,7 +12,7 @@ export default defineConfig({
       name: 'ios',
       use: {
         platform: 'ios',
-        installApps: 'ios/MyApp.zip',
+        installApps: '/Users/comviva/Documents/Automation/Mobilewright_TypeScript/testAppResources/TestApp.app',
       },
     },
     {
