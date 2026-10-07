@@ -4,9 +4,7 @@ export default defineConfig({
   testDir: './tests', //OR: '.',
   timeout:60000,
   retries:1,
-  viewTree:'on-failure',  
-  bundleId:'org.wdiodemoapp', //iOS - BundleID
-  // bundleId:'com.wdiodemoapp', //Android - PackageName
+  viewTree:'on-failure',
   // bundleId:'com.saucelabs.SwagLabsMobileApp',
   workers:2,
   projects:[
@@ -14,6 +12,7 @@ export default defineConfig({
       name: 'ios',
       use: {
         platform: 'ios',
+        bundleId:'org.wdiodemoapp',
         installApps: '/Users/comviva/Documents/Automation/Mobilewright_TypeScript/testAppResources/wdiodemoapp.zip',
         deviceName:/iPhone 18 Pro/
       },
@@ -22,6 +21,7 @@ export default defineConfig({
       name: 'android',
       use: {
         platform: 'android',
+        bundleId:'com.wdiodemoapp',
         installApps:'/Users/comviva/Documents/Automation/Mobilewright_TypeScript/testAppResources/webdriver.io.apk',
         // deviceName:/.*/,
         deviceName:/Pixel 10 Pro/ //deviceId--> Pixel_10_Pro
@@ -30,5 +30,5 @@ export default defineConfig({
   ],
   autoAppLaunch:true,
   reporter: 'html',
-  fullyParallel:false,
+  fullyParallel:true,
 });
