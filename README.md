@@ -1,67 +1,135 @@
 # Mobilewright_TypeScript
-📱 Mobile Execution Guide
-This project configurations are managed dynamically via mobilewright.config.ts. You can run a single test script across both Android and iOS platforms simply by changing the --project flag.
-🍏 iOS Execution
-To execute your test script on an iOS device, use the command below.
-⚠️ Note: The .app file must be compressed into a ZIP format before execution.
-bash
+
+## 📱 Mobile Execution Guide
+
+This project configuration is managed dynamically through `mobilewright.config.ts`. A single test script can be executed on both Android and iOS by using the appropriate `--project` flag.
+
+---
+
+## 🍏 iOS Execution
+
+To execute a test script on an iOS device or simulator:
+
+```bash
 npx mobilewright test 'webdriverio.spec.ts' --project=ios
-• Why --project ios? Because the repository contains multiple test configurations, this specific flag isolates and executes only the iOS-targeted test cases.
+```
 
-🤖 Android Execution
-To execute your test script on an Android device, use the following command:
-bash
+> ⚠️ **Note:** The `.app` file must be compressed into a `.zip` file before execution.
+
+### Why `--project=ios`?
+
+The repository contains multiple platform configurations. The `--project=ios` flag ensures that the test is executed using the **iOS-specific configuration**.
+
+---
+
+## 🤖 Android Execution
+
+To execute a test script on an Android device or emulator:
+
+```bash
 npx mobilewright test 'webdriverio.spec.ts' --project=android
-Use code with caution.
-• Why --project android? Similar to iOS, this specific flag isolates and executes only the Android-targeted test cases out of our multiple test suites.
+```
 
-Prerequisites & Setup
-1. Configure the Bundle ID / Package Name
-Before executing any script, you must update the bundle identifier in mobilewright.config.ts to match your target environment:
+### Why `--project=android`?
 
-typescript
-// iOS - Update the BundleID
-bundleId: 'org.wdiodemoapp', 
+The `--project=android` flag ensures that the test is executed using the **Android-specific configuration**.
 
-// Android - Update the PackageName
-bundleId: 'com.wdiodemoapp', 
+---
 
-2. Application Resources
-The required application binaries are located in the testAppResources folder. Ensure you point to the correct file:
-• Android: webdriver.io.apk
-• iOS: wdiodemoapp.zip (Note: The .app file must remain compressed in this ZIP format)
+# ⚙️ Prerequisites & Setup
 
-## Mobilewright Parallel Execution Configuration
+## 1. Configure the Bundle ID / Package Name
 
-When configuring Mobilewright for Android and iOS parallel execution, follow the below guidelines.
+Before executing the test script, update the `bundleId` in `mobilewright.config.ts` according to the target platform.
 
-### 1. Configure Bundle ID Per Platform
+### iOS
 
-If the Android and iOS applications have **different Bundle IDs**, configure the `bundleId` inside the respective platform/project configuration.
+```ts
+bundleId: 'org.wdiodemoapp',
+```
 
-If the **same Bundle ID is used for both Android and iOS applications**, the `bundleId` can be configured globally.
+### Android
 
-### 2. Enable Fully Parallel Execution
+```ts
+bundleId: 'com.wdiodemoapp',
+```
 
-To allow tests to execute in parallel across the configured projects, set:
+> **Note:** If Android and iOS use different Bundle IDs/Package Names, configure the `bundleId` inside each platform's project configuration.  
+> If the same `bundleId` is applicable to both projects, it can be configured globally.
+
+---
+
+## 2. Application Resources
+
+The required application binaries are located in the `testAppResources` folder.
+
+| Platform | Application |
+|---|---|
+| Android | `webdriver.io.apk` |
+| iOS | `wdiodemoapp.zip` |
+
+> ⚠️ **iOS Note:** The `.app` file must remain compressed in `.zip` format before execution.
+
+---
+
+# 🚀 Mobilewright Parallel Execution Configuration
+
+To execute Android and iOS tests in parallel, configure the Mobilewright projects appropriately.
+
+## 1. Configure Bundle ID Per Platform
+
+If Android and iOS applications have **different Bundle IDs**, configure the `bundleId` inside the respective platform configuration.
+
+```ts
+projects: [
+  {
+    name: 'ios',
+    use: {
+      platform: 'ios',
+      bundleId: 'com.example.ios',
+    },
+  },
+  {
+    name: 'android',
+    use: {
+      platform: 'android',
+      bundleId: 'com.example.android',
+    },
+  },
+]
+```
+
+If the **same Bundle ID is used for both applications**, the `bundleId` can be configured globally.
+
+---
+
+## 2. Enable Fully Parallel Execution
+
+To enable parallel execution, set:
 
 ```ts
 fullyParallel: true
 ```
 
-### 3. Configure Minimum Two Workers
+---
 
-Since Android and iOS execution will happen simultaneously, configure at least **2 workers**:
+## 3. Configure Minimum Two Workers
+
+Since Android and iOS execution will run simultaneously, configure at least **2 workers**:
 
 ```ts
 workers: 2
 ```
 
-This allows Mobilewright to run one worker for Android and another worker for iOS.
+This allows Mobilewright to execute the Android and iOS projects concurrently when the required devices/simulators are available.
 
-### Recommended Configuration
+---
+
+## Recommended Configuration
 
 ```ts
+import { defineConfig } from 'mobilewright';
+
 export default defineConfig({
   testDir: './tests',
   timeout: 60000,
@@ -94,32 +162,60 @@ export default defineConfig({
 });
 ```
 
-### Execution
+---
 
-To execute the test on both Android and iOS projects:
+# ▶️ Test Execution
+
+## Execute Tests on Both Android and iOS
+
+To execute all test files on both configured platforms:
 
 ```bash
 npx mobilewright test
 ```
 
-To execute a specific test file on both platform in paralle:
+## Execute a Specific Test File on Both Platforms as parallel execution
+
+To execute `webdriverio.spec.ts` on both Android and iOS:
 
 ```bash
 npx mobilewright test 'webdriverio.spec.ts'
 ```
 
-To execute only Android:
+With `workers: 2` and `fullyParallel: true`, the configured projects can execute in parallel when both platforms are available.
+
+## Execute Only Android
 
 ```bash
 npx mobilewright test 'webdriverio.spec.ts' --project=android
 ```
 
-To execute only iOS:
+## Execute Only iOS
 
 ```bash
 npx mobilewright test 'webdriverio.spec.ts' --project=ios
 ```
 
-### Important
+---
 
-For parallel Android and iOS execution, make sure both an **Android device/emulator** and an **iOS device/simulator** are available and ready before starting the test execution.
+# ⚠️ Important
+
+For parallel Android and iOS execution, make sure the following are available and ready before starting the test execution:
+
+- Android device/emulator
+- iOS device/simulator
+- Correct application binary for each platform
+- Correct `bundleId` for each platform
+- At least `2` workers configured
+
+### Quick Reference
+
+| Requirement | Configuration |
+|---|---|
+| Android project | `name: 'android'` |
+| iOS project | `name: 'ios'` |
+| Parallel execution | `fullyParallel: true` |
+| Minimum workers | `workers: 2` |
+| Both platforms | `npx mobilewright test` |
+| Android only | `--project=android` |
+| iOS only | `--project=ios` |

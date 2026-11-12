@@ -13,7 +13,7 @@ export default defineConfig({
       use: {
         platform: 'ios',
         bundleId:'org.wdiodemoapp',
-        installApps: '/Users/comviva/Documents/Automation/Mobilewright_TypeScript/testAppResources/wdiodemoapp.zip',
+        installApps: './testapps/wdiodemoapp.zip',
         deviceName:/iPhone 18 Pro/
       },
     },
@@ -22,7 +22,7 @@ export default defineConfig({
       use: {
         platform: 'android',
         bundleId:'com.wdiodemoapp',
-        installApps:'/Users/comviva/Documents/Automation/Mobilewright_TypeScript/testAppResources/webdriver.io.apk',
+        installApps:'./testapps/webdriver.io.apk',
         // deviceName:/.*/,
         deviceName:/Pixel 10 Pro/ //deviceId--> Pixel_10_Pro
       },
@@ -30,5 +30,5 @@ export default defineConfig({
   ],
   autoAppLaunch:true,
   reporter: 'html',
-  fullyParallel:true,
+  fullyParallel:false, //true for parallel execution
 });
