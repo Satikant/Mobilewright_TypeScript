@@ -1,0 +1,13 @@
+{
+    "validLogin": {
+    "username": "testio@gmail.com",
+    "password": "test@123"
+  },
+   "invalidLogin": {
+    "username": "wrong@gmail.com",
+    "password": "Wrong@123"
+  },
+  "validFormData":{
+    "formtext":"TestForm"
+  }
+}
