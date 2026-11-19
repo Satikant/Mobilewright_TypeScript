@@ -219,3 +219,6 @@ For parallel Android and iOS execution, make sure the following are available an
 | Both platforms | `npx mobilewright test` |
 | Android only | `--project=android` |
 | iOS only | `--project=ios` |
+
+Use this link to download the latest webdriverio apps for both Android and iOS 
+https://github.com/webdriverio/native-demo-app/releases

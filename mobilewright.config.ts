@@ -5,15 +5,15 @@ export default defineConfig({
   timeout:60000,
   retries:1,
   viewTree:'on-failure',
-  // bundleId:'com.saucelabs.SwagLabsMobileApp',
-  workers:2,
+  //bundleId:'org.wdiodemoapp' || 'com.wdiodemoapp',
+  workers:1, //Set more than 1 worker for Parallel execution
   projects:[
       {
       name: 'ios',
       use: {
         platform: 'ios',
         bundleId:'org.wdiodemoapp',
-        installApps: './testapps/wdiodemoapp.zip',
+        installApps: './testapps/iosWdioapp.zip',
         deviceName:/iPhone 18 Pro/
       },
     },
@@ -22,7 +22,7 @@ export default defineConfig({
       use: {
         platform: 'android',
         bundleId:'com.wdiodemoapp',
-        installApps:'./testapps/webdriver.io.apk',
+        installApps:'./testapps/AndroidWdio.apk',
         // deviceName:/.*/,
         deviceName:/Pixel 10 Pro/ //deviceId--> Pixel_10_Pro
       },
