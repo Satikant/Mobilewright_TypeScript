@@ -222,3 +222,40 @@ For parallel Android and iOS execution, make sure the following are available an
 
 Use this link to download the latest webdriverio apps for both Android and iOS 
 https://github.com/webdriverio/native-demo-app/releases
+
+
+Test Execution:-
+
+Execute Android tests: npx mobilewright test --project=android
+
+Execute iOS tests: npx mobilewright test tests/wdioE2ETest.spec.ts --project=ios
+
+Note: Use the exact project name configured in mobilewright.config.ts. Project names are case-sensitive.
+
+Allure Report Generation:-
+
+Follow these steps to execute tests and generate the latest Allure report.
+
+Step 1: Clean previous raw results
+
+rm -rf allure-results
+
+Step 2: Execute tests
+
+For Android:npx mobilewright test --project=android
+
+Step 3: Generate the latest Allure report
+
+npx allure generate allure-results --clean -o allure-report
+
+Step 4: Open the Allure report
+
+npx allure open allure-report
+
+Note: Cleaning allure-results before execution ensures that the generated Allure report contains results from the latest test execution rather than previous runs.
+
+Default HTML Report:
+
+To view the default Mobilewright/Playwright HTML report, execute: npx playwright show-report
+
+The default HTML report includes the configured video recordings and screenshots, which can help with debugging and failure analysis.

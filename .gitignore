@@ -12,6 +12,8 @@ playwright-report/
 test-results/
 html-report/
 coverage/
+allure-results/
+allure-report/
 
 # Logs
 *.log

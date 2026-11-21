@@ -1,6 +1,6 @@
 import {test} from '../fixture/Fixtures'
 
-test.only('Login with valid credentials',async({login_page})=>{
+test('Login with valid credentials',async({login_page})=>{
 console.log("Login is Successful");
 })
 test('Login with invalid credentials',async({login_page_invalid})=>{
