@@ -31,5 +31,10 @@ export const test = base.extend<MyFixtures>({
         await form_page.fillTheForm(formData.formtext);
         await use(form_page);
     }
-})
+});
+// Centralised video and failure diagnostics configuration
+test.use({
+  video: 'retain-on-failure',
+  viewTree: 'on-failure',
+});
 

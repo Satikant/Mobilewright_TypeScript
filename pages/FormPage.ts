@@ -23,7 +23,7 @@ get ActiveButton(){
     return this.screen.getByRole('text', { name: 'Active' });
 }
 get ButtonActiveTextInpopup(){
-    return this.screen.getByText('This button is active');
+    return this.screen.getByText('This button is activ');
 }
 get OkButtonInPopup(){
     return this.screen.getByRole('button', { name: 'OK' });

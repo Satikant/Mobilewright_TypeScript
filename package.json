@@ -2,6 +2,8 @@
   "devDependencies": {
     "@mobilewright/test": "^0.0.51",
     "@types/node": "latest",
+    "allure-commandline": "^2.46.1",
+    "allure-playwright": "^3.11.1",
     "mobilewright": "^0.0.51"
   }
 }
