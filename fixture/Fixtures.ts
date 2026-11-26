@@ -1,5 +1,5 @@
 import { test as base } from "@mobilewright/test";
-import { LoginPage } from "../pages/Loginpage";
+import { LoginPage } from "../pages/LoginPage";
 import { FormPage } from "../pages/FormPage";
 import { TestData } from "../utils/TestData";
 
