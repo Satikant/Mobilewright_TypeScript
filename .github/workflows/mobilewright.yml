@@ -53,7 +53,7 @@ jobs:
           force-avd-creation: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           disable-animations: true
-          script: npx mobilewright test tests/TestCase3wdioE2ETest.spec.ts --project=android --reporter html
+          script: npx mobilewright test tests/wdioE2ETest.spec.ts --project=android --reporter html
 
       # 6) Upload HTML report even if tests failed
       - name: Upload MobileWright report
