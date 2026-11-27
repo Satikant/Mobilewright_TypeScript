@@ -1,0 +1,120 @@
+# Mobilewright Tests (Android on CI)
+
+# Based on: https://mobilewright.dev/docs/getting-started/ci
+# Android emulator is started on the runner — NOT your USB phone.
+
+name: Mobilewright Tests
+
+on:
+  push:
+    branches: [main, featurebranch]
+  pull_request:
+    branches: [main]
+  # Manual run from GitHub → Actions → "Run workflow"
+  workflow_dispatch:
+
+jobs:
+  android:
+    name: Android emulator tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      MOBILEWRIGHT_DISABLE_TELEMETRY: '1'
+
+    steps:
+      # 1) Download this repo onto the GitHub runner
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2) Install Node (MobileWright needs Node >= 18; docs use 24)
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      # 3) Install npm dependencies from package-lock / package.json
+      - name: Install dependencies
+        run: npm ci
+
+      # 4) FIX: fast preflight (~5s) — fails on bad imports / zero tests
+      #    BEFORE paying the cost of booting an emulator.
+      - name: Preflight - discover tests
+        run: npx mobilewright test --list
+
+      # 5) FIX: the APK is git-ignored (124 MB > GitHub's 100 MB file limit),
+      #    so fetch it at runtime. "PK" check guards against an HTML error page.
+      - name: Download Android test app (wdio demo app)
+        run: |
+          mkdir -p testapps
+          curl -fL --retry 3 -o testapps/AndroidWdio.apk \
+            https://github.com/webdriverio/native-demo-app/releases/download/v2.2.0/android.wdio.native.app.v2.2.0.apk
+          ls -lh testapps/AndroidWdio.apk
+          test "$(head -c 2 testapps/AndroidWdio.apk)" = "PK"
+
+      # 6) KVM speeds up the Android emulator on Linux runners
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4android.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      # 7) Boot emulator → wait until ready → run MobileWright
+      #    FIX: -no-snapshot avoids the pointless snapshot save/restore in CI.
+      #    FIX: DEBUG=mw:* prints the device-resolution trace to the job log.
+      #
+      #    WHY EVERY LINE IS FAIL-FAST:
+      #    Mobilewright 0.0.51 hangs forever (no error, no timeout) when no connected
+      #    device matches `deviceName`. Without the guards below, a mismatch silently
+      #    burns the whole job: 3 tests x 2 attempts x test timeout. The guards turn
+      #    that invisible failure into a clear message within seconds.
+      #
+      #    NOTE: this action does NOT run `script:` as one shell — it splits on
+      #    every newline and runs each line via a separate `sh -c`, so variables
+      #    and `set -x` do not carry across lines. The logic therefore lives in
+      #    .github/scripts/run-android-tests.sh and is invoked as a single line.
+      - name: Run MobileWright on Android emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          arch: x86_64
+          profile: pixel_6
+          force-avd-creation: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot
+          disable-animations: true
+          script: bash .github/scripts/run-android-tests.sh
+
+      # 8) Upload HTML report even if tests failed
+      - name: Upload MobileWright report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobilewright-report-android
+          path: |
+            mobilewright-report/
+            allure-results/
+          retention-days: 30
+          if-no-files-found: warn
+
+  # Optional later: iOS needs macos-latest + simulator + iOS app zip in the repo.
+  # Uncomment when you are ready for iOS CI.
+  #
+  # ios:
+  #   name: iOS simulator tests
+  #   runs-on: macos-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: actions/setup-node@v4
+  #       with:
+  #         node-version: 24
+  #         cache: npm
+  #     - run: npm ci
+  #     - run: xcrun simctl boot "iPhone 16" || true
+  #     - run: npx mobilewright test --project=ios --reporter html
+  #     - uses: actions/upload-artifact@v4
+  #       if: ${{ !cancelled() }}
+  #       with:
+  #         name: mobilewright-report-ios
+  #         path: mobilewright-report/
+  #         retention-days: 30

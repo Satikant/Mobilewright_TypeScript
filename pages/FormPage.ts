@@ -23,7 +23,10 @@ get ActiveButton(){
     return this.screen.getByRole('text', { name: 'Active' });
 }
 get ButtonActiveTextInpopup(){
-    return this.screen.getByText('This button is activ');
+    // NOTE: the app renders the exact string "This button is active" and
+    // getByText() is an EXACT match by default (query-engine: nodeText === value).
+    // The previous value "This button is activ" (missing "e") could never match.
+    return this.screen.getByText('This button is active');
 }
 get OkButtonInPopup(){
     return this.screen.getByRole('button', { name: 'OK' });
