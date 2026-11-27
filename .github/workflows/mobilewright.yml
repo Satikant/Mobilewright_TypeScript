@@ -61,22 +61,42 @@ jobs:
           sudo udevadm trigger --name-match=kvm
 
       # 7) Boot emulator → wait until ready → run MobileWright
-      #    FIX: avd-name makes the device name "Pixel 10 Pro" (underscores → spaces),
-      #    matching deviceName:/Pixel 10 Pro/ in mobilewright.config.ts.
       #    FIX: -no-snapshot avoids the pointless snapshot save/restore in CI.
+      #    FIX: DEBUG=mw:* prints the device-resolution trace to the job log.
+      #
+      #    WHY EVERY LINE IS FAIL-FAST:
+      #    Mobilewright 0.0.51 hangs forever (no error, no timeout) when no connected
+      #    device matches `deviceName`. Without the guards below, a mismatch silently
+      #    burns the whole job: 3 tests x 2 attempts x test timeout. The guards turn
+      #    that invisible failure into a clear message within seconds.
+      #
+      #    NOTE: the action runs each line with its own `sh -c`, so environment
+      #    variables do NOT carry across lines. Anything needed later is set inline.
       - name: Run MobileWright on Android emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 30
           arch: x86_64
           profile: pixel_6
-          avd-name: Pixel_10_Pro
           force-avd-creation: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot
           disable-animations: true
-          script: npx mobilewright test tests/wdioE2ETest.spec.ts --project=android --reporter html
-          # For verbose device-matching logs, add:
-          # env: { DEBUG: 'mw:*' }
+          script: |
+            set -x
+            adb devices -l
+            # With DEVICE_MAX=1, adb exits 1 after printing the first device.
+            # That is expected here, so ignore the exit code; || is never reached.
+            DEVICE=$(adb devices | awk '$2=="device"{print $1; exit}' || true)
+            echo "RESOLVED_DEVICE=$DEVICE"
+            test -n "$DEVICE"
+            # Print the name Mobilewright will match deviceName against.
+            adb -s "$DEVICE" shell getprop ro.boot.qemu.avd_name
+            adb -s "$DEVICE" shell getprop ro.product.model
+            # Pre-install the agent here so the hard 8-minute cap protects the
+            # fixture setup, which otherwise blocks with no output.
+            timeout 480 npx mobilewright install
+            npx mobilewright devices
+            DEBUG='mw:*' npx mobilewright test tests/wdioE2ETest.spec.ts --project=android
 
       # 8) Upload HTML report even if tests failed
       - name: Upload MobileWright report

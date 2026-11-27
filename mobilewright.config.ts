@@ -2,8 +2,11 @@ import { defineConfig } from 'mobilewright';
 
 export default defineConfig({
   testDir: './tests', //OR: '.',
-  timeout:180000,
-  retries:1,
+  // IMPORTANT: the test timeout must be LARGER than installTimeout + appLaunchTimeout.
+  // Otherwise a slow APK install is reported as the useless
+  // "Test timeout of Nms exceeded while setting up device" and the real error is hidden.
+  timeout: 240000,
+  retries: 1,
   viewTree:'on-failure',
   //bundleId:'org.wdiodemoapp' || 'com.wdiodemoapp',
   workers:1, //Set more than 1 worker for Parallel execution
@@ -25,19 +28,26 @@ export default defineConfig({
         platform: 'android',
         bundleId:'com.wdiodemoapp',
         installApps:'./testapps/AndroidWdio.apk',
-        // deviceName:/.*/,
-        deviceName:/Pixel 10 Pro/, //deviceId--> Pixel_10_Pro
-        installTimeout:180000,
+        // FIX: use /.*/ instead of /Pixel 10 Pro/.
+        // Mobilewright 0.0.51 has a bug: if no device matches deviceName it does NOT
+        // throw and does NOT time out - it re-queues the allocation forever, and the only
+        // symptom is "Test timeout of Nms exceeded while setting up device" with no cause.
+        // CI runs exactly one emulator, so matching any device is both correct and safe.
+        // (If you ever run several devices, use deviceId:'Pixel_10_Pro' instead.)
+        deviceName:/.*/,
+        installTimeout:150000,  // 124 MB APK on a cold emulator is slow
         appLaunchTimeout: 60000
       },
     },
   ],
   autoAppLaunch:true,
   fullyParallel:true, //true for parallel execution
-  // reporter: 'html',
   reporter: [
     ['list'],
-    ['html'],
+    // Emit straight into mobilewright-report/ so the CI artifact path is correct
+    // without needing "--reporter html" on the command line (the CLI flag overrides
+    // every reporter in this file, which would skip allure-playwright entirely).
+    ['html', { outputFolder: 'mobilewright-report', open: 'never' }],
     [
         'allure-playwright',
         {
