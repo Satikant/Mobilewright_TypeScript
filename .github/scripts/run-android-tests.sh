@@ -65,6 +65,10 @@ echo "── Devices as seen by Mobilewright ───────────�
 npx mobilewright devices || true
 
 echo "── Running tests ────────────────────────────────────────────"
-# DEBUG=mw:* traces device resolution (mw:driver, mw:test:fixtures) into the log.
+# No --reporter flag: the CLI's --reporter OVERRIDES every reporter in
+# mobilewright.config.ts, which would drop allure-playwright's resultsDir and the
+# html outputFolder. The config already declares list + html + allure-playwright,
+# so plain 'test' gives the per-test pass/fail lines in the log AND keeps both
+# report outputs in their expected directories.
 export DEBUG='mw:*'
 npx mobilewright test tests/wdioE2ETest.spec.ts --project=android
