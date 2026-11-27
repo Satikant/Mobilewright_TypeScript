@@ -2,7 +2,7 @@ import { defineConfig } from 'mobilewright';
 
 export default defineConfig({
   testDir: './tests', //OR: '.',
-  timeout:60000,
+  timeout:180000,
   retries:1,
   viewTree:'on-failure',
   //bundleId:'org.wdiodemoapp' || 'com.wdiodemoapp',
@@ -27,6 +27,8 @@ export default defineConfig({
         installApps:'./testapps/AndroidWdio.apk',
         // deviceName:/.*/,
         deviceName:/Pixel 10 Pro/, //deviceId--> Pixel_10_Pro
+        installTimeout:180000,
+        appLaunchTimeout: 60000
       },
     },
   ],

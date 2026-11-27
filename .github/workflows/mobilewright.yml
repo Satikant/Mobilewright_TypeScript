@@ -7,7 +7,7 @@ name: Mobilewright Tests
 
 on:
   push:
-    branches: [main]
+    branches: [main, featurebranch]
   pull_request:
     branches: [main]
   # Manual run from GitHub → Actions → "Run workflow"
@@ -17,6 +17,9 @@ jobs:
   android:
     name: Android emulator tests
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      MOBILEWRIGHT_DISABLE_TELEMETRY: '1'
 
     steps:
       # 1) Download this repo onto the GitHub runner
@@ -34,7 +37,22 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # 4) KVM speeds up the Android emulator on Linux runners
+      # 4) FIX: fast preflight (~5s) — fails on bad imports / zero tests
+      #    BEFORE paying the cost of booting an emulator.
+      - name: Preflight - discover tests
+        run: npx mobilewright test --list
+
+      # 5) FIX: the APK is git-ignored (124 MB > GitHub's 100 MB file limit),
+      #    so fetch it at runtime. "PK" check guards against an HTML error page.
+      - name: Download Android test app (wdio demo app)
+        run: |
+          mkdir -p testapps
+          curl -fL --retry 3 -o testapps/AndroidWdio.apk \
+            https://github.com/webdriverio/native-demo-app/releases/download/v2.2.0/android.wdio.native.app.v2.2.0.apk
+          ls -lh testapps/AndroidWdio.apk
+          test "$(head -c 2 testapps/AndroidWdio.apk)" = "PK"
+
+      # 6) KVM speeds up the Android emulator on Linux runners
       - name: Enable KVM
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
@@ -42,27 +60,35 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      # 5) Boot emulator → wait until ready → run MobileWright
-      #    script: runs ONLY after the emulator is online
+      # 7) Boot emulator → wait until ready → run MobileWright
+      #    FIX: avd-name makes the device name "Pixel 10 Pro" (underscores → spaces),
+      #    matching deviceName:/Pixel 10 Pro/ in mobilewright.config.ts.
+      #    FIX: -no-snapshot avoids the pointless snapshot save/restore in CI.
       - name: Run MobileWright on Android emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 30
           arch: x86_64
           profile: pixel_6
+          avd-name: Pixel_10_Pro
           force-avd-creation: true
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot
           disable-animations: true
           script: npx mobilewright test tests/wdioE2ETest.spec.ts --project=android --reporter html
+          # For verbose device-matching logs, add:
+          # env: { DEBUG: 'mw:*' }
 
-      # 6) Upload HTML report even if tests failed
+      # 8) Upload HTML report even if tests failed
       - name: Upload MobileWright report
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
           name: mobilewright-report-android
-          path: mobilewright-report/
+          path: |
+            mobilewright-report/
+            allure-results/
           retention-days: 30
+          if-no-files-found: warn
 
   # Optional later: iOS needs macos-latest + simulator + iOS app zip in the repo.
   # Uncomment when you are ready for iOS CI.
